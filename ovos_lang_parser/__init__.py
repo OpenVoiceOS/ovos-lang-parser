@@ -6,7 +6,10 @@ from ovos_utils.lang import standardize_lang_tag
 
 
 def extract_langcode(text, lang):
-    resource_file = f"{os.path.dirname(__file__)}/langs.json"
+    lang = standardize_lang_tag(lang).split("-")[0]
+    resource_file = f"{os.path.dirname(__file__)}/{lang}/langs.json"
+    if not os.path.isfile(resource_file):
+        resource_file = f"{os.path.dirname(__file__)}/en/langs.json"
     LANGUAGES = {}
     with open(resource_file) as f:
         for k, v in json.load(f).items():
@@ -20,7 +23,10 @@ def extract_langcode(text, lang):
 
 
 def pronounce_lang(lang_code, lang):
-    resource_file = f"{os.path.dirname(__file__)}/langs.json"
+    lang = standardize_lang_tag(lang).split("-")[0]
+    resource_file = f"{os.path.dirname(__file__)}/{lang}/langs.json"
+    if not os.path.isfile(resource_file):
+        resource_file = f"{os.path.dirname(__file__)}/en/langs.json"
     with open(resource_file) as f:
         LANGUAGES = json.load(f)
     lang_code = lang_code.lower()
