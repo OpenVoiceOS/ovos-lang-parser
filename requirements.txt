@@ -1,5 +1,2 @@
-python-dateutil~=2.6
-quebra_frases>=0.3.7
-ovos-number-parser>=0.0.2,<1.0.0
-dateparser
-ovos-config
+ovos-utils[extra]
+langcodes
