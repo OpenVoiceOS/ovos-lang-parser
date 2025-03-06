@@ -1,0 +1,5 @@
+recursive-include ovos_lang_parser/ *
+recursive-include ovos_lang_parser/res/ *
+include CHANGELOG.md
+include LICENSE
+include README.md
