@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.2a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.2a1) (2025-03-06)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.1a1...0.0.2a1)
+
+**Merged pull requests:**
+
+- fix: res file loading [\#10](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/10) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.1a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.1a1) (2025-03-06)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.0...0.0.1a1)
