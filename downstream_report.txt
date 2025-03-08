@@ -1,2 +1,2 @@
 ovos-lang-parser==0.0.2
-└── ovos-skill-diagnostics==0.0.3 [requires: ovos-lang-parser]
+└── ovos-skill-diagnostics==0.0.5 [requires: ovos-lang-parser]
