@@ -1,20 +1,12 @@
 # Changelog
 
-## [0.0.2a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.2a1) (2025-03-06)
+## [0.0.3a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.3a1) (2025-06-07)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.1a1...0.0.2a1)
-
-**Merged pull requests:**
-
-- fix: res file loading [\#10](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/10) ([JarbasAl](https://github.com/JarbasAl))
-
-## [0.0.1a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.1a1) (2025-03-06)
-
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.0...0.0.1a1)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.2...0.0.3a1)
 
 **Merged pull requests:**
 
-- da-dk/translate [\#3](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/3) ([gitlocalize-app[bot]](https://github.com/apps/gitlocalize-app))
+- nl-nl translation [\#12](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/12) ([gitlocalize-app[bot]](https://github.com/apps/gitlocalize-app))
 
 
 
