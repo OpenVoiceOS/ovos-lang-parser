@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3a5](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.3a5) (2026-01-19)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.3a4...0.0.3a5)
+
+**Merged pull requests:**
+
+- es-es/translate [\#22](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/22) ([gitlocalize-app[bot]](https://github.com/apps/gitlocalize-app))
+
 ## [0.0.3a4](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.3a4) (2025-12-19)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.3a3...0.0.3a4)
