@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.6.0a1) (2026-07-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.5.0a1...0.6.0a1)
+
+**Merged pull requests:**
+
+- feat\(ro\): Romanian language-name wordlist [\#31](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/31) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.5.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.5.0a1) (2026-07-16)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.4.0a1...0.5.0a1)
