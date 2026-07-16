@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.4a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.4a1) (2026-07-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.3a5...0.0.4a1)
+
+**Merged pull requests:**
+
+- fix: remove nonexistent ovos-utils extra from requirements [\#24](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/24) ([JarbasAl](https://github.com/JarbasAl))
+- chore\(deps\): update actions/setup-python action to v6 [\#21](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/21) ([renovate[bot]](https://github.com/apps/renovate))
+- chore\(deps\): update actions/checkout action to v6 [\#18](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/18) ([renovate[bot]](https://github.com/apps/renovate))
+
 ## [0.0.3a5](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.3a5) (2026-01-19)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.3a4...0.0.3a5)
