@@ -5,6 +5,12 @@ from ovos_lang_parser import (LANGS, extract_langcode, get_lang_data,
 
 # hand-verified (utterance language, spoken name, expected code) triples
 EXTRACTION_SAMPLES = [
+    ("ar", "العربية", "ar"),
+    ("ar", "الإنجليزية", "en"),
+    ("ar", "البرتغالية", "pt"),
+    ("ar", "الألمانية", "de"),
+    ("ar", "الفرنسية", "fr"),
+    ("ar", "الصينية", "zh"),
     ("ca", "Portuguès", "pt"),
     ("ca", "Anglès", "en"),
     ("ca", "Croat", "hr"),
@@ -47,6 +53,9 @@ EXTRACTION_SAMPLES = [
 
 # hand-verified (utterance language, code, expected spoken name) triples
 PRONUNCIATION_SAMPLES = [
+    ("ar", "pt", "البرتغالية"),
+    ("ar", "en", "الإنجليزية"),
+    ("ar", "ja", "اليابانية"),
     ("ca", "pt", "Portuguès"),
     ("da", "pt", "portugisisk"),
     ("de", "pt", "Portugiesisch"),
