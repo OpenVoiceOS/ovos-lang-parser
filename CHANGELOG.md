@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.3.0a1) (2026-07-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.2.0a1...0.3.0a1)
+
+**Merged pull requests:**
+
+- feat: west frisian, aragonese and asturian language name resources [\#28](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/28) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.2.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.2.0a1) (2026-07-16)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.1.0a1...0.2.0a1)
