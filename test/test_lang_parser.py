@@ -69,6 +69,19 @@ EXTRACTION_SAMPLES = [
     ("pt", "Francês", "fr"),
     ("pt", "Holandês", "nl"),
     ("pt", "Tcheco", "cs"),
+    ("ro", "Portugheză", "pt"),
+    ("ro", "Engleză", "en"),
+    ("ro", "Germană", "de"),
+    ("ro", "Franceză", "fr"),
+    ("ro", "Spaniolă", "es"),
+    ("ro", "Română", "ro"),
+    ("ro", "Rusă", "ru"),
+    ("ro", "Arabă", "ar"),
+    ("ro", "Chineză", "zh"),
+    ("ro", "Japoneză", "ja"),
+    ("ro", "Maghiară", "hu"),
+    ("ro", "Neerlandeză", "nl"),
+    ("ro", "Ebraică", "he"),
 ]
 
 # hand-verified (utterance language, code, expected spoken name) triples
@@ -96,6 +109,11 @@ PRONUNCIATION_SAMPLES = [
     ("pt", "pt", "Português"),
     ("pt", "de", "Alemão"),
     ("pt", "zh", "Chinês"),
+    ("ro", "pt", "Portugheză"),
+    ("ro", "en", "Engleză"),
+    ("ro", "de", "Germană"),
+    ("ro", "it", "Italiană"),
+    ("ro", "zh", "Chineză"),
 ]
 
 
@@ -103,7 +121,7 @@ class TestLangs(unittest.TestCase):
     def test_supported_languages(self):
         self.assertEqual(LANGS, sorted(LANGS))
         for lang in ["an", "ast", "ca", "da", "de", "en", "es", "eu",
-                     "fr", "fy", "gl", "it", "nl", "oc", "pt"]:
+                     "fr", "fy", "gl", "it", "nl", "oc", "pt", "ro"]:
             self.assertIn(lang, LANGS)
 
 
