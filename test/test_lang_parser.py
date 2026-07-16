@@ -25,6 +25,7 @@ EXTRACTION_SAMPLES = [
     ("es", "Alemán", "de"),
     ("eu", "Portuguesa", "pt"),
     ("eu", "Ingelesa", "en"),
+    ("eu", "Galiziera", "gl"),
     ("fr", "Portugais", "pt"),
     ("fr", "Anglais", "en"),
     ("fr", "Allemand", "de"),
@@ -38,6 +39,10 @@ EXTRACTION_SAMPLES = [
     ("nl", "Duits", "de"),
     ("pt", "Português", "pt"),
     ("pt", "Inglês", "en"),
+    ("pt", "Alemão", "de"),
+    ("pt", "Francês", "fr"),
+    ("pt", "Holandês", "nl"),
+    ("pt", "Tcheco", "cs"),
 ]
 
 # hand-verified (utterance language, code, expected spoken name) triples
@@ -54,6 +59,8 @@ PRONUNCIATION_SAMPLES = [
     ("it", "pt", "Portoghese"),
     ("nl", "pt", "Portugees"),
     ("pt", "pt", "Português"),
+    ("pt", "de", "Alemão"),
+    ("pt", "zh", "Chinês"),
 ]
 
 
@@ -109,6 +116,8 @@ class TestExtractLangcode(unittest.TestCase):
         self.assertGreater(conf, 0.3)
         code, conf = extract_langcode("não falo espanhol", "pt")
         self.assertEqual(code, "es")
+        code, conf = extract_langcode("eu falo alemão", "pt")
+        self.assertEqual(code, "de")
 
     def test_regional_variants(self):
         self.assertEqual(extract_langcode("American English", "en")[0], "en-us")
