@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.5a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.5a1) (2026-07-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.4a1...0.0.5a1)
+
+**Merged pull requests:**
+
+- fix: language name parsing bugs [\#25](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/25) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.4a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.4a1) (2026-07-16)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.3a5...0.0.4a1)
