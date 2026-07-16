@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.1.0a1) (2026-07-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.5a1...0.1.0a1)
+
+**Merged pull requests:**
+
+- feat: fill Portuguese and Basque language name gaps [\#26](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/26) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.5a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.0.5a1) (2026-07-16)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.4a1...0.0.5a1)
