@@ -1,2 +1,2 @@
-ovos-utils[extra]
+ovos-utils>=0.0.38,<1.0.0
 langcodes
