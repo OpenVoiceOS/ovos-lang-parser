@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.2.0a1) (2026-07-16)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.1.0a1...0.2.0a1)
+
+**Merged pull requests:**
+
+- feat: arabic language names [\#27](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/27) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.1.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.1.0a1) (2026-07-16)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.0.5a1...0.1.0a1)
