@@ -5,6 +5,12 @@ from ovos_lang_parser import (LANGS, extract_langcode, get_lang_data,
 
 # hand-verified (utterance language, spoken name, expected code) triples
 EXTRACTION_SAMPLES = [
+    ("an", "Portugués", "pt"),
+    ("an", "Anglés", "en"),
+    ("an", "Alemán", "de"),
+    ("ast", "Portugués", "pt"),
+    ("ast", "Inglés", "en"),
+    ("ast", "Castellanu", "es"),
     ("ar", "العربية", "ar"),
     ("ar", "الإنجليزية", "en"),
     ("ar", "البرتغالية", "pt"),
@@ -35,6 +41,9 @@ EXTRACTION_SAMPLES = [
     ("fr", "Portugais", "pt"),
     ("fr", "Anglais", "en"),
     ("fr", "Allemand", "de"),
+    ("fy", "Frânsk", "fr"),
+    ("fy", "Ingelsk", "en"),
+    ("fy", "Dútsk", "de"),
     ("gl", "Portugués", "pt"),
     ("gl", "Inglés", "en"),
     ("it", "Portoghese", "pt"),
@@ -53,9 +62,11 @@ EXTRACTION_SAMPLES = [
 
 # hand-verified (utterance language, code, expected spoken name) triples
 PRONUNCIATION_SAMPLES = [
+    ("an", "pt", "Portugués"),
     ("ar", "pt", "البرتغالية"),
     ("ar", "en", "الإنجليزية"),
     ("ar", "ja", "اليابانية"),
+    ("ast", "pt", "Portugués"),
     ("ca", "pt", "Portuguès"),
     ("da", "pt", "portugisisk"),
     ("de", "pt", "Portugiesisch"),
@@ -64,6 +75,7 @@ PRONUNCIATION_SAMPLES = [
     ("es", "pt", "Portugués"),
     ("eu", "pt", "Portuguesa"),
     ("fr", "pt", "Portugais"),
+    ("fy", "pt", "Portegeesk"),
     ("gl", "pt", "Portugués"),
     ("it", "pt", "Portoghese"),
     ("nl", "pt", "Portugees"),
@@ -76,8 +88,8 @@ PRONUNCIATION_SAMPLES = [
 class TestLangs(unittest.TestCase):
     def test_supported_languages(self):
         self.assertEqual(LANGS, sorted(LANGS))
-        for lang in ["ca", "da", "de", "en", "es", "eu",
-                     "fr", "gl", "it", "nl", "pt"]:
+        for lang in ["an", "ast", "ca", "da", "de", "en", "es", "eu",
+                     "fr", "fy", "gl", "it", "nl", "pt"]:
             self.assertIn(lang, LANGS)
 
 
