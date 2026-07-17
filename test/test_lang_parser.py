@@ -203,6 +203,60 @@ class TestExtractLangcode(unittest.TestCase):
         with self.assertRaises(ValueError):
             extract_langcode("English", "zz")
 
+    def test_name_in_natural_sentence(self):
+        # a language name embedded in a full utterance is recovered exactly
+        cases = [
+            ("translate this into Brazilian Portuguese", "en", "pt-br"),
+            ("say it in Chinese", "en", "zh"),
+            ("can you speak German with me", "en", "de"),
+            ("traduci in tedesco per favore", "it", "de"),
+            ("quiero aprender japonés", "es", "ja"),
+            ("auf Deutsch bitte", "de", "de"),
+            ("kannst du das auf Niederländisch sagen", "de", "nl"),
+        ]
+        for text, lang, expected in cases:
+            code, conf = extract_langcode(text, lang)
+            self.assertEqual(code, expected, text)
+            self.assertEqual(conf, 1.0, text)
+
+    def test_accented_name_embedded(self):
+        # accents inside a longer utterance must not lose the exact match
+        for text, lang, expected in [
+            ("eu falo alemão em casa", "pt", "de"),
+            ("ele fala francês", "pt", "fr"),
+            ("no hablo japonés", "es", "ja"),
+        ]:
+            code, conf = extract_langcode(text, lang)
+            self.assertEqual((code, conf), (expected, 1.0), text)
+
+    def test_longest_name_wins_over_substring(self):
+        # "American English" must not collapse to plain "English"
+        self.assertEqual(
+            extract_langcode("please use American English here", "en"),
+            ("en-us", 1.0))
+
+    def test_non_language_word_not_confidently_matched(self):
+        for text in ["hello there friend", "communication skills",
+                     "I want a hamburger please"]:
+            code, conf = extract_langcode(text, "en")
+            self.assertLess(conf, 0.6, text)
+
+    def test_non_string_text_does_not_raise(self):
+        for bad in [None, 123, 4.5, [], {}]:
+            self.assertEqual(extract_langcode(bad, "en"), ("", 0.0))
+
+    def test_empty_text_returns_no_match(self):
+        for text in ["", "   ", "\t\n"]:
+            self.assertEqual(extract_langcode(text, "en"), ("", 0.0))
+
+    def test_mixed_case_and_whitespace(self):
+        self.assertEqual(extract_langcode("  pOrTuGuEsE  ", "en")[0], "pt")
+
+    def test_unmatchable_script_returns_no_code(self):
+        # a name written in a script the wordlist has no entry for must not
+        # yield an arbitrary zero-confidence code
+        self.assertEqual(extract_langcode("日本語", "en"), ("", 0.0))
+
 
 class TestPronounceLang(unittest.TestCase):
     def test_samples(self):
@@ -231,6 +285,14 @@ class TestPronounceLang(unittest.TestCase):
     def test_unsupported_language_raises(self):
         with self.assertRaises(ValueError):
             pronounce_lang("en", "zz")
+
+    def test_non_string_code_returned_unchanged(self):
+        for bad in [None, 123, 4.5]:
+            self.assertEqual(pronounce_lang(bad, "en"), bad)
+
+    def test_region_variants_have_distinct_names(self):
+        self.assertEqual(pronounce_lang("en-us", "en"), "American English")
+        self.assertEqual(pronounce_lang("pt-br", "en"), "Brazilian Portuguese")
 
 
 class TestRegionAndPrivateUseTags(unittest.TestCase):
