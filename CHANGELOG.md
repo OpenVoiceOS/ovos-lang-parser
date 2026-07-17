@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.1a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.1a1) (2026-07-17)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.0a5...0.7.1a1)
+
+**Merged pull requests:**
+
+- fix: tolerate non-string and embedded language names in extraction [\#39](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/39) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.7.0a5](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.0a5) (2026-07-17)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.0a4...0.7.0a5)
