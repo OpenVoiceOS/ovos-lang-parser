@@ -233,6 +233,53 @@ class TestPronounceLang(unittest.TestCase):
             pronounce_lang("en", "zz")
 
 
+class TestRegionAndPrivateUseTags(unittest.TestCase):
+    """Region and private-use ``-x-`` dialect subtags (ISO 639 / BCP-47).
+
+    No wordlist bundles a dedicated name for these dialects, so the
+    documented contract is a fall back to the base-language name, without
+    crashing and without stripping the subtag during standardization.
+    """
+
+    def test_region_tags_fall_back_to_base_name(self):
+        # ar-EG / pt-AO have no dedicated wordlist name -> base language name
+        self.assertEqual(pronounce_lang("ar-EG", "en"), "Arabic")
+        self.assertEqual(pronounce_lang("pt-AO", "en"), "Portuguese")
+        self.assertEqual(pronounce_lang("pt-AO", "pt"), "Português")
+
+    def test_private_use_tags_fall_back_to_base_name(self):
+        # -x- private-use dialects resolve to their base language name
+        self.assertEqual(pronounce_lang("pt-BR-x-caipira", "en"), "Portuguese")
+        self.assertEqual(pronounce_lang("ar-IQ-x-qeltu", "en"), "Arabic")
+        self.assertEqual(pronounce_lang("ar-IQ-x-qeltu", "ar"), "العربية")
+        # base name resolved in a wordlist that bundles it
+        self.assertEqual(pronounce_lang("an-x-ansotano", "an"), "Aragonés")
+
+    def test_private_use_tag_without_base_name_returned_unchanged(self):
+        # base language absent from the wordlist -> unchanged, never raises
+        # (English has no name for Aragonese "an")
+        self.assertEqual(pronounce_lang("an-x-ansotano", "en"), "an-x-ansotano")
+        self.assertEqual(pronounce_lang("zz-x-madeup", "en"), "zz-x-madeup")
+
+    def test_standardize_preserves_region_and_private_use(self):
+        from ovos_lang_parser import _normalize_code
+        # case-folded but the region / -x- subtag is preserved, not collapsed
+        self.assertEqual(_normalize_code("ar-EG"), "ar-eg")
+        self.assertEqual(_normalize_code("an-x-ansotano"), "an-x-ansotano")
+        self.assertEqual(_normalize_code("pt-BR-x-caipira"), "pt-br-x-caipira")
+        self.assertEqual(_normalize_code("ar-IQ-x-qeltu"), "ar-iq-x-qeltu")
+
+    def test_spec_matcher_closest_and_distance(self):
+        from ovos_spec_tools.language import closest_lang, lang_distance
+        # exact and regional matches rank correctly via the spec matcher
+        self.assertEqual(lang_distance("en-us", "en"), 0)
+        self.assertGreater(lang_distance("pt-br", "pt"), 0)
+        self.assertGreater(lang_distance("ja", "pt"), 10)
+        self.assertEqual(closest_lang("pt-br", ["en", "pt", "de"]), "pt")
+        self.assertEqual(closest_lang("an-x-ansotano", ["an", "es"]), "an")
+        self.assertIsNone(closest_lang("ja", ["en", "pt", "de"]))
+
+
 class TestRoundTrip(unittest.TestCase):
     def test_pronounce_then_extract_all_languages(self):
         for lang in LANGS:
