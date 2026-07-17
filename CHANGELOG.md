@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.1a2](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.1a2) (2026-07-17)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.1a1...0.7.1a2)
+
+**Merged pull requests:**
+
+- feat: name the long tail of ISO-639 codes via CLDR fallback [\#42](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/42) ([JarbasAl](https://github.com/JarbasAl))
+- feat: adopt spec language matcher and preserve dialect tags [\#41](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/41) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.7.1a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.1a1) (2026-07-17)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.0a5...0.7.1a1)
