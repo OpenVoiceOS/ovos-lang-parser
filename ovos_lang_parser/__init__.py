@@ -3,6 +3,29 @@
 Maps between spoken language names (e.g. "Portuguese", "Portugiesisch",
 "Português") and IETF language codes (e.g. "pt"), in both directions,
 using per-language wordlists bundled under ``res/``.
+
+BCP-47 tag resolution — standardizing a tag, and picking the closest wordlist
+for a requested language — is delegated to the OVOS-spec reference matcher
+(``ovos_spec_tools.language``: ``standardize_lang``, ``closest_lang``,
+``lang_distance``), so this library ranks dialects identically to the rest of
+the stack (OVOS-INTENT-2 §2.2). Matching a spoken *name* against the wordlist
+(fuzzy, order-insensitive) is a separate concern and stays with ``match_one``.
+
+Region and private-use dialect subtags
+---------------------------------------
+A code may carry a region (``ar-EG``, ``pt-AO``) or a private-use dialect
+subtag (``an-x-ansotano``, ``pt-BR-x-caipira``, ``ar-IQ-x-qeltu``). The
+wordlists name languages and, for a handful of cases, specific regional
+varieties — they do not name every dialect. The contract is explicit:
+
+- Standardization **preserves** region and ``-x-`` private-use subtags; a tag
+  is never silently collapsed to its base language, and a private-use tag
+  never raises.
+- :func:`pronounce_lang` returns the most specific spoken name it has: the full
+  tag's name when one exists, otherwise an explicit, documented fall back to
+  the **base-language** name (``ar-EG`` -> the name of ``ar``). This is a
+  lossy-but-safe fallback, not a failure — the base name is an acceptable
+  answer when no dialect-specific name is bundled.
 """
 import json
 import os.path
@@ -10,7 +33,7 @@ import re
 from functools import lru_cache
 from typing import Dict, List, Tuple
 
-from langcodes import closest_match, standardize_tag
+from ovos_spec_tools.language import closest_lang, lang_distance, standardize_lang
 from ovos_utils.parse import match_one, MatchStrategy
 
 RES_DIR = f"{os.path.dirname(__file__)}/res"
@@ -40,12 +63,15 @@ def _normalize_code(lang_code: str) -> str:
 
     Legacy tags are updated (e.g. ``iw`` -> ``he``, ``jw`` -> ``jv``,
     ``mo`` -> ``ro``) so the same code is returned regardless of which
-    alias a wordlist (or caller) uses.
+    alias a wordlist (or caller) uses. Region and ``-x-`` private-use
+    subtags are preserved (``an-x-ansotano`` stays ``an-x-ansotano``);
+    tag comparison is case-insensitive, so the result is lowercased.
+
+    Standardization is the OVOS-spec matcher (:func:`standardize_lang`),
+    which never raises — a malformed tag is returned in a best-effort
+    normalized form rather than aborting.
     """
-    try:
-        return str(standardize_tag(lang_code)).lower()
-    except ValueError:
-        return lang_code.lower()
+    return standardize_lang(lang_code).lower()
 
 
 @lru_cache(maxsize=None)
@@ -69,12 +95,17 @@ def _load_wordlist(lang: str) -> Tuple[Tuple[str, Tuple[str, ...]], ...]:
     return tuple((code, tuple(names)) for code, names in entries.items())
 
 
-def _closest_lang(lang: str) -> str:
-    """Match ``lang`` against the languages with a bundled wordlist."""
-    closest_lang, distance = closest_match(lang, LANGS)
-    if distance > 10:
+def _closest_wordlist(lang: str) -> str:
+    """Match ``lang`` against the languages with a bundled wordlist.
+
+    Uses the OVOS-spec §2.2 fallback (:func:`closest_lang`) so a regional
+    request resolves to its base wordlist (``pt-br`` -> ``pt``). Raises
+    ValueError when nothing is close enough.
+    """
+    match = closest_lang(lang, LANGS)
+    if match is None:
         raise ValueError(f"Unsupported language '{lang}' not in {LANGS}")
-    return closest_lang
+    return match
 
 
 def get_lang_data(lang: str) -> Dict[str, str]:
@@ -85,7 +116,7 @@ def get_lang_data(lang: str) -> Dict[str, str]:
     bundled wordlist.
     """
     return {name: code
-            for code, names in _load_wordlist(_closest_lang(lang))
+            for code, names in _load_wordlist(_closest_wordlist(lang))
             for name in names}
 
 
@@ -128,15 +159,23 @@ def extract_langcode(text: str, lang: str) -> Tuple[str, float]:
 def pronounce_lang(lang_code: str, lang: str) -> str:
     """Get the spoken name of ``lang_code`` in ``lang``.
 
-    Falls back to the primary subtag (e.g. ``pt-br`` -> ``pt``) when the
-    full tag has no dedicated name, and returns ``lang_code`` unchanged
-    if the wordlist has no name for it at all (or is not a string).
+    Resolution is most-specific-first: the full tag's dedicated name when
+    the wordlist has one, otherwise an explicit fall back to the
+    **base-language** name. A region (``ar-EG`` -> the name of ``ar``) or a
+    private-use dialect subtag (``pt-BR-x-caipira`` -> the name of ``pt``,
+    ``ar-IQ-x-qeltu`` -> the name of ``ar``) that has no dedicated wordlist
+    name resolves to the base-language name — a documented, lossy-but-safe
+    fallback, never a crash. When the wordlist has no name for the base
+    language either, ``lang_code`` is returned unchanged.
     """
     if not isinstance(lang_code, str):
         return lang_code
     names = {code: spoken[0]
-             for code, spoken in _load_wordlist(_closest_lang(lang))
+             for code, spoken in _load_wordlist(_closest_wordlist(lang))
              if spoken}
     full_code = _normalize_code(lang_code)
+    # base language of a regioned / private-use tag: "pt-br" -> "pt",
+    # "an-x-ansotano" -> "an". The "-x-" subtag carries no base name of its
+    # own, so the primary subtag is the fallback lookup key.
     base_code = full_code.split("-")[0]
     return names.get(full_code) or names.get(base_code) or lang_code
