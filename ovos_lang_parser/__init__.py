@@ -33,10 +33,17 @@ import re
 from functools import lru_cache
 from typing import Dict, List, Tuple
 
+import langcodes
 from ovos_spec_tools.language import closest_lang, lang_distance, standardize_lang
-from ovos_utils.parse import match_one, MatchStrategy
+from ovos_utils.parse import match_one, fuzzy_match, MatchStrategy
 
 RES_DIR = f"{os.path.dirname(__file__)}/res"
+
+# A ``langcodes`` name->code guess is only trusted when the resolved code's own
+# display name (in the query language, in English, or its autonym) matches the
+# text this closely. ``langcodes.find`` is greedy and will otherwise resolve
+# ordinary words ("banana" -> bcw, "music" -> mos) to obscure languages.
+_LANGCODES_NAME_FLOOR = 0.9
 
 # languages with a bundled wordlist
 LANGS = sorted(entry for entry in os.listdir(RES_DIR)
@@ -108,6 +115,81 @@ def _closest_wordlist(lang: str) -> str:
     return match
 
 
+def _langcodes_names(code: str, lang: str) -> List[str]:
+    """Names ``langcodes`` knows for ``code``: display name in ``lang``, in
+    English, and the autonym. Empty when the code is unknown to CLDR (the
+    "Unknown language [xxx]" sentinel is treated as no name)."""
+    try:
+        language = langcodes.Language.get(code)
+    except (langcodes.tag_parser.LanguageTagError, ValueError):
+        return []
+    names = []
+    for display in (lang, "en"):
+        try:
+            name = language.display_name(display)
+        except Exception:
+            continue
+        if name and not name.lower().startswith("unknown language"):
+            names.append(name)
+    try:
+        autonym = language.autonym()
+    except Exception:
+        autonym = ""
+    if autonym and not autonym.lower().startswith("unknown language"):
+        names.append(autonym)
+    # de-dup, preserve order
+    seen = []
+    for name in names:
+        if name not in seen:
+            seen.append(name)
+    return seen
+
+
+def _langcodes_name(lang_code: str, lang: str) -> str:
+    """CLDR display name for ``lang_code`` in ``lang``, or ``""``.
+
+    Mirrors the wordlist base-fallback contract: a regioned or private-use tag
+    with no name of its own resolves to its base-language name, so
+    ``pt-BR-x-caipira`` is named as Portuguese rather than crashing or leaking
+    the region into the name. The base subtag is tried first so a regioned tag
+    resolves to the plain base-language name (``mwl-PT`` -> "Mirandese", not
+    "Mirandese (Portugal)"), matching the wordlist base-fallback contract.
+    """
+    base = lang_code.split("-")[0]
+    for candidate in (base, lang_code) if base != lang_code else (lang_code,):
+        names = _langcodes_names(candidate, lang)
+        if names:
+            return names[0]
+    return ""
+
+
+def _langcodes_find(text: str, lang: str) -> Tuple[str, float]:
+    """Resolve a spoken language *name* to a code via CLDR, guarding against
+    ``langcodes.find`` greedily matching ordinary words.
+
+    Returns ``(code, confidence)`` only when the resolved code's own display
+    name matches ``text`` at or above :data:`_LANGCODES_NAME_FLOOR`; otherwise
+    ``("", 0.0)``.
+    """
+    try:
+        code = str(langcodes.find(text, language=lang))
+    except LookupError:
+        try:
+            code = str(langcodes.find(text))
+        except LookupError:
+            return "", 0.0
+    query = text.casefold()
+    names = _langcodes_names(code, lang)
+    if not names:
+        return "", 0.0
+    conf = max(fuzzy_match(query, name.casefold(),
+                           strategy=MatchStrategy.TOKEN_SORT_RATIO)
+               for name in names)
+    if conf < _LANGCODES_NAME_FLOOR:
+        return "", 0.0
+    return _normalize_code(code), conf
+
+
 def get_lang_data(lang: str) -> Dict[str, str]:
     """Map spoken language names in ``lang`` to language codes.
 
@@ -149,6 +231,13 @@ def extract_langcode(text: str, lang: str) -> Tuple[str, float]:
     if best is not None:
         return best[2], 1.0
     code, conf = match_one(query, langs, strategy=MatchStrategy.TOKEN_SET_RATIO)
+    # A strong wordlist match is authoritative and keeps its curated code.
+    # Only when the wordlist is unsure do we consult CLDR names (which cover
+    # languages no wordlist bundles), and never below the guarded floor.
+    if conf < _LANGCODES_NAME_FLOOR:
+        lc_code, lc_conf = _langcodes_find(query, lang)
+        if lc_conf and lc_conf > conf:
+            return lc_code, lc_conf
     # a zero-confidence "match" is no match at all; don't return an
     # arbitrary code for it
     if not conf:
@@ -178,4 +267,11 @@ def pronounce_lang(lang_code: str, lang: str) -> str:
     # "an-x-ansotano" -> "an". The "-x-" subtag carries no base name of its
     # own, so the primary subtag is the fallback lookup key.
     base_code = full_code.split("-")[0]
-    return names.get(full_code) or names.get(base_code) or lang_code
+    curated = names.get(full_code) or names.get(base_code)
+    if curated:
+        return curated
+    # No curated name: fall back to the CLDR display name in the requested
+    # language, which covers the long tail of ISO-639 codes no wordlist bundles
+    # (mwl -> "Mirandese", lij -> "Ligurian"). Only truly unknown or private-use
+    # codes fall through to the code returned unchanged.
+    return _langcodes_name(full_code, lang) or lang_code
