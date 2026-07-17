@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/HEAD)
+## [0.7.0a3](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.0a3) (2026-07-17)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.0a1...HEAD)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.0a1...0.7.0a3)
 
 **Merged pull requests:**
 
+- ci: modernize the release workflows onto the shared uv-build path [\#34](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/34) ([JarbasAl](https://github.com/JarbasAl))
 - chore: migrate packaging to pyproject.toml [\#33](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/33) ([JarbasAl](https://github.com/JarbasAl))
 
 ## [0.7.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.0a1) (2026-07-16)
