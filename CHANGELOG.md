@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/HEAD)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.0a1...HEAD)
+
+**Merged pull requests:**
+
+- chore: migrate packaging to pyproject.toml [\#33](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/33) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.7.0a1](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.0a1) (2026-07-16)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.6.0a1...0.7.0a1)
