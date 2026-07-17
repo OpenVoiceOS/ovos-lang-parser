@@ -94,14 +94,35 @@ def extract_langcode(text: str, lang: str) -> Tuple[str, float]:
 
     ``lang`` is the language the utterance is spoken in. Returns a
     ``(langcode, confidence)`` tuple; confidence is between 0 and 1.
+    A non-string or blank ``text`` yields ``("", 0.0)`` rather than raising.
     """
     langs = get_lang_data(lang)
-    # an exact name match always wins over fuzzy matching
-    query = " ".join(text.split()).casefold()
+    if not isinstance(text, str) or not text.strip():
+        return "", 0.0
+    tokens = text.casefold().split()
+    query = " ".join(tokens)
+    # An exact name match always wins over fuzzy matching. A name that
+    # appears verbatim as a run of whole words in a longer utterance
+    # ("quiero aprender japonés") counts as exact too; the most specific
+    # (longest) such name wins, so "American English" beats "English".
+    best = None  # (span, -start, code)
     for name, code in langs.items():
-        if name.casefold() == query:
-            return code, 1.0
-    return match_one(text, langs, strategy=MatchStrategy.TOKEN_SET_RATIO)
+        name_tokens = name.casefold().split()
+        span = len(name_tokens)
+        for i in range(len(tokens) - span + 1) if span else ():
+            if tokens[i:i + span] == name_tokens:
+                key = (span, -i, code)
+                if best is None or key[:2] > best[:2]:
+                    best = key
+                break
+    if best is not None:
+        return best[2], 1.0
+    code, conf = match_one(query, langs, strategy=MatchStrategy.TOKEN_SET_RATIO)
+    # a zero-confidence "match" is no match at all; don't return an
+    # arbitrary code for it
+    if not conf:
+        return "", 0.0
+    return code, conf
 
 
 def pronounce_lang(lang_code: str, lang: str) -> str:
@@ -109,8 +130,10 @@ def pronounce_lang(lang_code: str, lang: str) -> str:
 
     Falls back to the primary subtag (e.g. ``pt-br`` -> ``pt``) when the
     full tag has no dedicated name, and returns ``lang_code`` unchanged
-    if the wordlist has no name for it at all.
+    if the wordlist has no name for it at all (or is not a string).
     """
+    if not isinstance(lang_code, str):
+        return lang_code
     names = {code: spoken[0]
              for code, spoken in _load_wordlist(_closest_lang(lang))
              if spoken}
