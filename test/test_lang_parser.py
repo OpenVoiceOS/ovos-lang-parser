@@ -252,10 +252,33 @@ class TestExtractLangcode(unittest.TestCase):
     def test_mixed_case_and_whitespace(self):
         self.assertEqual(extract_langcode("  pOrTuGuEsE  ", "en")[0], "pt")
 
-    def test_unmatchable_script_returns_no_code(self):
-        # a name written in a script the wordlist has no entry for must not
-        # yield an arbitrary zero-confidence code
-        self.assertEqual(extract_langcode("日本語", "en"), ("", 0.0))
+    def test_unmatchable_text_returns_no_code(self):
+        # text that names no language at all must not yield an arbitrary
+        # zero-confidence code, not even from the CLDR name fallback
+        self.assertEqual(extract_langcode("12345", "en"), ("", 0.0))
+        self.assertEqual(extract_langcode("!!!", "en"), ("", 0.0))
+
+    def test_cldr_name_fallback_for_unbundled_language(self):
+        # a CLDR name for a language no wordlist bundles resolves via the
+        # guarded langcodes fallback, in English and localized
+        self.assertEqual(extract_langcode("Mirandese", "en"), ("mwl", 1.0))
+        self.assertEqual(extract_langcode("Ligurian", "en"), ("lij", 1.0))
+        self.assertEqual(extract_langcode("Extremaduran", "en"), ("ext", 1.0))
+        self.assertEqual(extract_langcode("mirandês", "pt"), ("mwl", 1.0))
+        # a CLDR autonym in its own script is recognized too
+        self.assertEqual(extract_langcode("日本語", "en"), ("ja", 1.0))
+
+    def test_cldr_fallback_rejects_non_language_words(self):
+        # langcodes.find is greedy ("banana" -> bcw, "music" -> mos); the
+        # guarded fallback must never surface those obscure codes
+        for word in ["banana", "music", "the", "water", "yellow"]:
+            code, _ = extract_langcode(word, "en")
+            self.assertNotIn(code, ("bcw", "mos", "thx"), word)
+
+    def test_curated_wordlist_wins_over_cldr(self):
+        # a strong curated match keeps its curated code, not a CLDR reading
+        self.assertEqual(extract_langcode("Portuguese", "en"), ("pt", 1.0))
+        self.assertEqual(extract_langcode("English", "en"), ("en", 1.0))
 
 
 class TestPronounceLang(unittest.TestCase):
@@ -278,6 +301,21 @@ class TestPronounceLang(unittest.TestCase):
 
     def test_unknown_code_returned_unchanged(self):
         self.assertEqual(pronounce_lang("xx", "en"), "xx")
+
+    def test_cldr_names_unbundled_codes(self):
+        # codes no wordlist bundles are named from CLDR, in English...
+        self.assertEqual(pronounce_lang("mwl", "en"), "Mirandese")
+        self.assertEqual(pronounce_lang("ast", "en"), "Asturian")
+        self.assertEqual(pronounce_lang("lij", "en"), "Ligurian")
+        self.assertEqual(pronounce_lang("ext", "en"), "Extremaduran")
+        self.assertEqual(pronounce_lang("akk", "en"), "Akkadian")
+        # ...and localized into the requested display language
+        self.assertEqual(pronounce_lang("mwl", "pt"), "mirandês")
+
+    def test_curated_wordlist_wins_over_cldr(self):
+        # a curated wordlist name is preserved even where CLDR differs
+        self.assertEqual(pronounce_lang("pt", "en"), "Portuguese")
+        self.assertEqual(pronounce_lang("en-us", "en"), "American English")
 
     def test_malformed_code_returned_unchanged(self):
         self.assertEqual(pronounce_lang("not a tag", "en"), "not a tag")
@@ -317,10 +355,14 @@ class TestRegionAndPrivateUseTags(unittest.TestCase):
         # base name resolved in a wordlist that bundles it
         self.assertEqual(pronounce_lang("an-x-ansotano", "an"), "Aragonés")
 
-    def test_private_use_tag_without_base_name_returned_unchanged(self):
-        # base language absent from the wordlist -> unchanged, never raises
-        # (English has no name for Aragonese "an")
-        self.assertEqual(pronounce_lang("an-x-ansotano", "en"), "an-x-ansotano")
+    def test_private_use_tag_base_named_via_cldr(self):
+        # the English wordlist bundles no name for Aragonese "an", but CLDR
+        # does -> the base-language name, with the region/-x- subtag dropped
+        self.assertEqual(pronounce_lang("an-x-ansotano", "en"), "Aragonese")
+        self.assertEqual(pronounce_lang("mwl-PT", "en"), "Mirandese")
+
+    def test_private_use_tag_without_any_name_returned_unchanged(self):
+        # base language unknown to both wordlist and CLDR -> unchanged, no crash
         self.assertEqual(pronounce_lang("zz-x-madeup", "en"), "zz-x-madeup")
 
     def test_standardize_preserves_region_and_private_use(self):
