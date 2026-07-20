@@ -108,6 +108,7 @@ PRONUNCIATION_SAMPLES = [
     ("ast", "pt", "Portugués"),
     ("ca", "pt", "Portuguès"),
     ("da", "pt", "portugisisk"),
+    ("da", "nb", "bokmål"),
     ("de", "pt", "Portugiesisch"),
     ("en", "pt", "Portuguese"),
     ("en", "nn", "Norwegian Nynorsk"),
