@@ -16,8 +16,8 @@ Two ideas run through the whole API:
 - A **language code** is an IETF/BCP-47 tag such as `en`, `pt`, or `pt-br`. Codes are
   normalized to their modern lowercase form, so legacy tags collapse to the current one
   (`iw` → `he`, `jw` → `jv`, `mo` → `ro`).
-- The **`lang`** argument is always *the language the names are written in* — not the
-  language being named. To read a French sentence, pass `lang="fr"`; the code it resolves to
+- The **`lang`** argument is always *the language the names are written in*, not the
+  language being named. To read a French sentence, pass `lang="fr"`. The code it resolves to
   can be any language.
 
 ---
@@ -33,8 +33,8 @@ Find the language named in `text`, where `text` is written in `lang`.
 
 Returns `(langcode, confidence)`:
 
-- `langcode` — the best-matching BCP-47 code.
-- `confidence` — a float in `0.0`–`1.0`.
+- `langcode`: the best-matching BCP-47 code.
+- `confidence`: a float from `0.0` to `1.0`.
 
 Matching works in two stages:
 
@@ -42,7 +42,7 @@ Matching works in two stages:
    result is that code with confidence `1.0`.
 2. **Fuzzy match.** Otherwise a token-set-ratio matcher scores `text` against every known
    name and returns the best one. Because it is token-set based, a clean language name
-   surrounded by other words still scores `1.0` — the surrounding tokens do not count against
+   surrounded by other words still scores `1.0`. The surrounding tokens do not count against
    it. What *does* lower the score is punctuation stuck to the name (`Chinese?`), a
    misspelling, or text with no language name at all.
 
@@ -59,20 +59,20 @@ For best results on free text, strip surrounding punctuation before calling.
 ### Confidence and thresholds
 
 Because stage 2 always returns *some* best match, `extract_langcode` never signals "no
-language here" on its own — text with no language mention still returns a low-confidence
+language here" on its own. Text with no language mention still returns a low-confidence
 guess:
 
 ```python
-extract_langcode("the weather today", "en")           # e.g. ('rm', 0.45)  — noise
+extract_langcode("the weather today", "en")           # e.g. ('rm', 0.45)  (noise)
 ```
 
 Apply a threshold suited to your input. As a rule of thumb:
 
-- **`== 1.0`** — a clean, unambiguous name (safe to trust).
-- **`>= 0.7`** — a confident mention (good default for NER/routing).
-- **`< 0.5`** — treat as "no language mentioned".
+- **`== 1.0`**: a clean, unambiguous name (safe to trust).
+- **`>= 0.7`**: a confident mention (good default for NER/routing).
+- **`< 0.5`**: treat as "no language mentioned".
 
-Tune against your own data; noisy free text warrants a higher floor than short labels, and
+Tune against your own data. Noisy free text warrants a higher floor than short labels, and
 stripping punctuation first keeps genuine mentions above the threshold.
 
 ### Errors
@@ -131,8 +131,8 @@ the library knows. Raises `ValueError` if `lang` has no bundled wordlist.
 
 ## `LANGS -> list[str]`
 
-Sorted list of the language codes whose names the library can parse — i.e. valid values for
-the `lang` argument.
+Sorted list of the language codes whose names the library can parse. These are the valid
+values for the `lang` argument.
 
 ```python
 import ovos_lang_parser
@@ -141,7 +141,7 @@ ovos_lang_parser.LANGS
 #  'fy', 'gl', 'hr', 'it', 'kab', 'nl', 'oc', 'pt', 'ro', 'sk']
 ```
 
-`lang` does not have to be an exact member — it is matched to the closest available wordlist,
+`lang` does not have to be an exact member. It is matched to the closest available wordlist,
 so `en-us` and `en-gb` both use the `en` list. Only a `lang` with no close match raises.
 
 ---
@@ -150,7 +150,10 @@ so `en-us` and `en-gb` both use the `en` list. Only a `lang` with no close match
 
 - **Caching.** Wordlists are loaded once and memoized (`lru_cache`), so repeated calls are
   cheap. The first call for a given `lang` pays the JSON-load cost.
-- **Thread safety.** All functions are pure reads over immutable in-memory data; safe to call
-  concurrently.
+- **Thread safety.** All functions are pure reads over immutable in-memory data. They are safe
+  to call concurrently.
 - **No network, no models.** Everything resolves from bundled JSON under the package's `res/`
   directory. See [coverage.md](coverage.md) for the data model.
+
+---
+[Home](../README.md) · [Coverage →](coverage.md)
