@@ -1,0 +1,403 @@
+import unittest
+
+from ovos_lang_parser import (LANGS, extract_langcode, get_lang_data,
+                              pronounce_lang)
+
+# hand-verified (utterance language, spoken name, expected code) triples
+EXTRACTION_SAMPLES = [
+    ("an", "Portugués", "pt"),
+    ("an", "Anglés", "en"),
+    ("an", "Alemán", "de"),
+    ("ast", "Portugués", "pt"),
+    ("ast", "Inglés", "en"),
+    ("ast", "Castellanu", "es"),
+    ("ar", "العربية", "ar"),
+    ("ar", "الإنجليزية", "en"),
+    ("ar", "البرتغالية", "pt"),
+    ("ar", "الألمانية", "de"),
+    ("ar", "الفرنسية", "fr"),
+    ("ar", "الصينية", "zh"),
+    ("ca", "Portuguès", "pt"),
+    ("ca", "Anglès", "en"),
+    ("ca", "Croat", "hr"),
+    ("ca", "Bosnià", "bs"),
+    ("da", "portugisisk", "pt"),
+    ("da", "engelsk", "en"),
+    ("da", "tysk", "de"),
+    ("de", "Portugiesisch", "pt"),
+    ("de", "Englisch", "en"),
+    ("de", "Deutsch", "de"),
+    ("de", "Niederländisch", "nl"),
+    ("en", "Portuguese", "pt"),
+    ("en", "English", "en"),
+    ("en", "German", "de"),
+    ("en", "Hebrew", "he"),
+    ("es", "Portugués", "pt"),
+    ("es", "Inglés", "en"),
+    ("es", "Alemán", "de"),
+    ("eu", "Portuguesa", "pt"),
+    ("eu", "Ingelesa", "en"),
+    ("eu", "Galiziera", "gl"),
+    ("fr", "Portugais", "pt"),
+    ("fr", "Anglais", "en"),
+    ("fr", "Allemand", "de"),
+    ("fy", "Frânsk", "fr"),
+    ("fy", "Ingelsk", "en"),
+    ("fy", "Dútsk", "de"),
+    ("gl", "Portugués", "pt"),
+    ("gl", "Inglés", "en"),
+    ("it", "Portoghese", "pt"),
+    ("kab", "Taqbaylit", "kab"),
+    ("kab", "Tutlayt taqbaylit", "kab"),
+    ("kab", "Tafṛansist", "fr"),
+    ("kab", "Taglizit", "en"),
+    ("kab", "Taɛrabt", "ar"),
+    ("kab", "Talmant", "de"),
+    ("it", "Inglese", "en"),
+    ("it", "Tedesco", "de"),
+    ("nl", "Portugees", "pt"),
+    ("oc", "Portugués", "pt"),
+    ("oc", "Anglés", "en"),
+    ("oc", "Alemand", "de"),
+    ("oc", "Occitan", "oc"),
+    ("oc", "Catalan", "ca"),
+    ("nl", "Engels", "en"),
+    ("nl", "Duits", "de"),
+    ("pt", "Português", "pt"),
+    ("pt", "Inglês", "en"),
+    ("pt", "Alemão", "de"),
+    ("pt", "Francês", "fr"),
+    ("pt", "Holandês", "nl"),
+    ("pt", "Tcheco", "cs"),
+    ("ro", "Portugheză", "pt"),
+    ("ro", "Engleză", "en"),
+    ("ro", "Germană", "de"),
+    ("ro", "Franceză", "fr"),
+    ("ro", "Spaniolă", "es"),
+    ("ro", "Română", "ro"),
+    ("ro", "Rusă", "ru"),
+    ("ro", "Arabă", "ar"),
+    ("ro", "Chineză", "zh"),
+    ("ro", "Japoneză", "ja"),
+    ("ro", "Maghiară", "hu"),
+    ("ro", "Neerlandeză", "nl"),
+    ("ro", "Ebraică", "he"),
+    ("sk", "portugalčina", "pt"),
+    ("sk", "angličtina", "en"),
+    ("sk", "nemčina", "de"),
+    ("sk", "slovenčina", "sk"),
+    ("sk", "chorvátčina", "hr"),
+    ("hr", "portugalski", "pt"),
+    ("hr", "engleski", "en"),
+    ("hr", "njemački", "de"),
+    ("hr", "hrvatski", "hr"),
+    ("hr", "slovački", "sk"),
+    ("bg", "португалски", "pt"),
+    ("bg", "английски", "en"),
+    ("bg", "немски", "de"),
+    ("bg", "български", "bg"),
+    ("bg", "руски", "ru"),
+]
+
+# hand-verified (utterance language, code, expected spoken name) triples
+PRONUNCIATION_SAMPLES = [
+    ("an", "pt", "Portugués"),
+    ("ar", "pt", "البرتغالية"),
+    ("ar", "en", "الإنجليزية"),
+    ("ar", "ja", "اليابانية"),
+    ("ast", "pt", "Portugués"),
+    ("ca", "pt", "Portuguès"),
+    ("da", "pt", "portugisisk"),
+    ("da", "nb", "bokmål"),
+    ("de", "pt", "Portugiesisch"),
+    ("en", "pt", "Portuguese"),
+    ("en", "nn", "Norwegian Nynorsk"),
+    ("es", "pt", "Portugués"),
+    ("eu", "pt", "Portuguesa"),
+    ("fr", "pt", "Portugais"),
+    ("fy", "pt", "Portegeesk"),
+    ("gl", "pt", "Portugués"),
+    ("it", "pt", "Portoghese"),
+    ("nl", "pt", "Portugees"),
+    ("oc", "pt", "Portugués"),
+    ("oc", "en", "Anglés"),
+    ("oc", "es", "Espanhòl"),
+    ("pt", "pt", "Português"),
+    ("pt", "de", "Alemão"),
+    ("pt", "zh", "Chinês"),
+    ("ro", "pt", "Portugheză"),
+    ("ro", "en", "Engleză"),
+    ("ro", "de", "Germană"),
+    ("ro", "it", "Italiană"),
+    ("ro", "zh", "Chineză"),
+    ("sk", "pt", "portugalčina"),
+    ("sk", "en", "angličtina"),
+    ("hr", "pt", "portugalski"),
+    ("hr", "de", "njemački"),
+    ("bg", "pt", "португалски"),
+    ("bg", "en", "английски"),
+]
+
+
+class TestLangs(unittest.TestCase):
+    def test_supported_languages(self):
+        self.assertEqual(LANGS, sorted(LANGS))
+        for lang in ["an", "ast", "ca", "da", "de", "en", "es", "eu",
+                     "fr", "fy", "gl", "it", "nl", "oc", "pt", "ro",
+                     "sk", "hr", "bg"]:
+            self.assertIn(lang, LANGS)
+
+
+class TestGetLangData(unittest.TestCase):
+    def test_every_language_loads(self):
+        for lang in LANGS:
+            data = get_lang_data(lang)
+            self.assertIsInstance(data, dict)
+            self.assertGreater(len(data), 100, lang)
+            for name, code in data.items():
+                self.assertIsInstance(name, str)
+                self.assertIsInstance(code, str)
+                self.assertEqual(code, code.lower())
+
+    def test_dialects_resolve_to_closest_language(self):
+        self.assertEqual(get_lang_data("pt-br"), get_lang_data("pt"))
+        self.assertEqual(get_lang_data("en-US"), get_lang_data("en"))
+
+    def test_unsupported_language_raises(self):
+        for lang in ["zz", "ja", "ru", "klingon"]:
+            with self.assertRaises(ValueError):
+                get_lang_data(lang)
+
+    def test_legacy_codes_normalized(self):
+        for lang in LANGS:
+            codes = set(get_lang_data(lang).values())
+            for legacy in ["iw", "jw", "mo"]:
+                self.assertNotIn(legacy, codes, lang)
+
+
+class TestExtractLangcode(unittest.TestCase):
+    def test_exact_names(self):
+        for lang, name, expected in EXTRACTION_SAMPLES:
+            code, conf = extract_langcode(name, lang)
+            self.assertEqual(code, expected, f"{lang}: {name}")
+            self.assertEqual(conf, 1.0)
+
+    def test_case_insensitive(self):
+        self.assertEqual(extract_langcode("portuguese", "en")[0], "pt")
+        self.assertEqual(extract_langcode("FRENCH", "en")[0], "fr")
+
+    def test_name_embedded_in_utterance(self):
+        code, conf = extract_langcode("I speak French fluently", "en")
+        self.assertEqual(code, "fr")
+        self.assertGreater(conf, 0.3)
+        code, conf = extract_langcode("não falo espanhol", "pt")
+        self.assertEqual(code, "es")
+        code, conf = extract_langcode("eu falo alemão", "pt")
+        self.assertEqual(code, "de")
+
+    def test_regional_variants(self):
+        self.assertEqual(extract_langcode("American English", "en")[0], "en-us")
+        self.assertEqual(extract_langcode("Brazilian Portuguese", "en")[0],
+                         "pt-br")
+
+    def test_unsupported_language_raises(self):
+        with self.assertRaises(ValueError):
+            extract_langcode("English", "zz")
+
+    def test_name_in_natural_sentence(self):
+        # a language name embedded in a full utterance is recovered exactly
+        cases = [
+            ("translate this into Brazilian Portuguese", "en", "pt-br"),
+            ("say it in Chinese", "en", "zh"),
+            ("can you speak German with me", "en", "de"),
+            ("traduci in tedesco per favore", "it", "de"),
+            ("quiero aprender japonés", "es", "ja"),
+            ("auf Deutsch bitte", "de", "de"),
+            ("kannst du das auf Niederländisch sagen", "de", "nl"),
+        ]
+        for text, lang, expected in cases:
+            code, conf = extract_langcode(text, lang)
+            self.assertEqual(code, expected, text)
+            self.assertEqual(conf, 1.0, text)
+
+    def test_accented_name_embedded(self):
+        # accents inside a longer utterance must not lose the exact match
+        for text, lang, expected in [
+            ("eu falo alemão em casa", "pt", "de"),
+            ("ele fala francês", "pt", "fr"),
+            ("no hablo japonés", "es", "ja"),
+        ]:
+            code, conf = extract_langcode(text, lang)
+            self.assertEqual((code, conf), (expected, 1.0), text)
+
+    def test_longest_name_wins_over_substring(self):
+        # "American English" must not collapse to plain "English"
+        self.assertEqual(
+            extract_langcode("please use American English here", "en"),
+            ("en-us", 1.0))
+
+    def test_non_language_word_not_confidently_matched(self):
+        for text in ["hello there friend", "communication skills",
+                     "I want a hamburger please"]:
+            code, conf = extract_langcode(text, "en")
+            self.assertLess(conf, 0.6, text)
+
+    def test_non_string_text_does_not_raise(self):
+        for bad in [None, 123, 4.5, [], {}]:
+            self.assertEqual(extract_langcode(bad, "en"), ("", 0.0))
+
+    def test_empty_text_returns_no_match(self):
+        for text in ["", "   ", "\t\n"]:
+            self.assertEqual(extract_langcode(text, "en"), ("", 0.0))
+
+    def test_mixed_case_and_whitespace(self):
+        self.assertEqual(extract_langcode("  pOrTuGuEsE  ", "en")[0], "pt")
+
+    def test_unmatchable_text_returns_no_code(self):
+        # text that names no language at all must not yield an arbitrary
+        # zero-confidence code, not even from the CLDR name fallback
+        self.assertEqual(extract_langcode("12345", "en"), ("", 0.0))
+        self.assertEqual(extract_langcode("!!!", "en"), ("", 0.0))
+
+    def test_cldr_name_fallback_for_unbundled_language(self):
+        # a CLDR name for a language no wordlist bundles resolves via the
+        # guarded langcodes fallback, in English and localized
+        self.assertEqual(extract_langcode("Mirandese", "en"), ("mwl", 1.0))
+        self.assertEqual(extract_langcode("Ligurian", "en"), ("lij", 1.0))
+        self.assertEqual(extract_langcode("Extremaduran", "en"), ("ext", 1.0))
+        self.assertEqual(extract_langcode("mirandês", "pt"), ("mwl", 1.0))
+        # a CLDR autonym in its own script is recognized too
+        self.assertEqual(extract_langcode("日本語", "en"), ("ja", 1.0))
+
+    def test_cldr_fallback_rejects_non_language_words(self):
+        # langcodes.find is greedy ("banana" -> bcw, "music" -> mos); the
+        # guarded fallback must never surface those obscure codes
+        for word in ["banana", "music", "the", "water", "yellow"]:
+            code, _ = extract_langcode(word, "en")
+            self.assertNotIn(code, ("bcw", "mos", "thx"), word)
+
+    def test_curated_wordlist_wins_over_cldr(self):
+        # a strong curated match keeps its curated code, not a CLDR reading
+        self.assertEqual(extract_langcode("Portuguese", "en"), ("pt", 1.0))
+        self.assertEqual(extract_langcode("English", "en"), ("en", 1.0))
+
+
+class TestPronounceLang(unittest.TestCase):
+    def test_samples(self):
+        for lang, code, expected in PRONUNCIATION_SAMPLES:
+            self.assertEqual(pronounce_lang(code, lang), expected)
+
+    def test_code_case_insensitive(self):
+        self.assertEqual(pronounce_lang("PT", "en"), "Portuguese")
+        self.assertEqual(pronounce_lang("En-Us", "en"), "American English")
+
+    def test_dialect_falls_back_to_primary_subtag(self):
+        self.assertEqual(pronounce_lang("de-at", "en"), "German")
+        self.assertEqual(pronounce_lang("fr-CA", "en"), "French")
+
+    def test_legacy_code_aliases(self):
+        self.assertEqual(pronounce_lang("iw", "en"), "Hebrew")
+        self.assertEqual(pronounce_lang("jw", "en"), "Javanese")
+        self.assertEqual(pronounce_lang("iw", "pt"), "Hebraico")
+
+    def test_unknown_code_returned_unchanged(self):
+        self.assertEqual(pronounce_lang("xx", "en"), "xx")
+
+    def test_cldr_names_unbundled_codes(self):
+        # codes no wordlist bundles are named from CLDR, in English...
+        self.assertEqual(pronounce_lang("mwl", "en"), "Mirandese")
+        self.assertEqual(pronounce_lang("ast", "en"), "Asturian")
+        self.assertEqual(pronounce_lang("lij", "en"), "Ligurian")
+        self.assertEqual(pronounce_lang("ext", "en"), "Extremaduran")
+        self.assertEqual(pronounce_lang("akk", "en"), "Akkadian")
+        # ...and localized into the requested display language
+        self.assertEqual(pronounce_lang("mwl", "pt"), "mirandês")
+
+    def test_curated_wordlist_wins_over_cldr(self):
+        # a curated wordlist name is preserved even where CLDR differs
+        self.assertEqual(pronounce_lang("pt", "en"), "Portuguese")
+        self.assertEqual(pronounce_lang("en-us", "en"), "American English")
+
+    def test_malformed_code_returned_unchanged(self):
+        self.assertEqual(pronounce_lang("not a tag", "en"), "not a tag")
+
+    def test_unsupported_language_raises(self):
+        with self.assertRaises(ValueError):
+            pronounce_lang("en", "zz")
+
+    def test_non_string_code_returned_unchanged(self):
+        for bad in [None, 123, 4.5]:
+            self.assertEqual(pronounce_lang(bad, "en"), bad)
+
+    def test_region_variants_have_distinct_names(self):
+        self.assertEqual(pronounce_lang("en-us", "en"), "American English")
+        self.assertEqual(pronounce_lang("pt-br", "en"), "Brazilian Portuguese")
+
+
+class TestRegionAndPrivateUseTags(unittest.TestCase):
+    """Region and private-use ``-x-`` dialect subtags (ISO 639 / BCP-47).
+
+    No wordlist bundles a dedicated name for these dialects, so the
+    documented contract is a fall back to the base-language name, without
+    crashing and without stripping the subtag during standardization.
+    """
+
+    def test_region_tags_fall_back_to_base_name(self):
+        # ar-EG / pt-AO have no dedicated wordlist name -> base language name
+        self.assertEqual(pronounce_lang("ar-EG", "en"), "Arabic")
+        self.assertEqual(pronounce_lang("pt-AO", "en"), "Portuguese")
+        self.assertEqual(pronounce_lang("pt-AO", "pt"), "Português")
+
+    def test_private_use_tags_fall_back_to_base_name(self):
+        # -x- private-use dialects resolve to their base language name
+        self.assertEqual(pronounce_lang("pt-BR-x-caipira", "en"), "Portuguese")
+        self.assertEqual(pronounce_lang("ar-IQ-x-qeltu", "en"), "Arabic")
+        self.assertEqual(pronounce_lang("ar-IQ-x-qeltu", "ar"), "العربية")
+        # base name resolved in a wordlist that bundles it
+        self.assertEqual(pronounce_lang("an-x-ansotano", "an"), "Aragonés")
+
+    def test_private_use_tag_base_named_via_cldr(self):
+        # the English wordlist bundles no name for Aragonese "an", but CLDR
+        # does -> the base-language name, with the region/-x- subtag dropped
+        self.assertEqual(pronounce_lang("an-x-ansotano", "en"), "Aragonese")
+        self.assertEqual(pronounce_lang("mwl-PT", "en"), "Mirandese")
+
+    def test_private_use_tag_without_any_name_returned_unchanged(self):
+        # base language unknown to both wordlist and CLDR -> unchanged, no crash
+        self.assertEqual(pronounce_lang("zz-x-madeup", "en"), "zz-x-madeup")
+
+    def test_standardize_preserves_region_and_private_use(self):
+        from ovos_lang_parser import _normalize_code
+        # case-folded but the region / -x- subtag is preserved, not collapsed
+        self.assertEqual(_normalize_code("ar-EG"), "ar-eg")
+        self.assertEqual(_normalize_code("an-x-ansotano"), "an-x-ansotano")
+        self.assertEqual(_normalize_code("pt-BR-x-caipira"), "pt-br-x-caipira")
+        self.assertEqual(_normalize_code("ar-IQ-x-qeltu"), "ar-iq-x-qeltu")
+
+    def test_spec_matcher_closest_and_distance(self):
+        from ovos_spec_tools.language import closest_lang, lang_distance
+        # exact and regional matches rank correctly via the spec matcher
+        self.assertEqual(lang_distance("en-us", "en"), 0)
+        self.assertGreater(lang_distance("pt-br", "pt"), 0)
+        self.assertGreater(lang_distance("ja", "pt"), 10)
+        self.assertEqual(closest_lang("pt-br", ["en", "pt", "de"]), "pt")
+        self.assertEqual(closest_lang("an-x-ansotano", ["an", "es"]), "an")
+        self.assertIsNone(closest_lang("ja", ["en", "pt", "de"]))
+
+
+class TestRoundTrip(unittest.TestCase):
+    def test_pronounce_then_extract_all_languages(self):
+        for lang in LANGS:
+            codes = sorted(set(get_lang_data(lang).values()))
+            self.assertGreater(len(codes), 100, lang)
+            for code in codes:
+                spoken = pronounce_lang(code, lang)
+                self.assertNotEqual(spoken, code,
+                                    f"{lang}: no spoken name for {code}")
+                extracted, conf = extract_langcode(spoken, lang)
+                self.assertEqual(extracted, code, f"{lang}: {spoken}")
+                self.assertEqual(conf, 1.0, f"{lang}: {spoken}")
+
+
+if __name__ == "__main__":
+    unittest.main()
