@@ -1,8 +1,21 @@
 # Changelog
 
+## [0.7.1a4](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.1a4) (2026-07-31)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.1a3...0.7.1a4)
+
+**Merged pull requests:**
+
+- docs: rewrite README in Simplified Technical English [\#47](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/47) ([JarbasAl](https://github.com/JarbasAl))
+- fix\(da\): add missing nb \(Bokmål\) language code [\#46](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/46) ([andlo](https://github.com/andlo))
+
 ## [0.7.1a3](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.1a3) (2026-07-17)
 
-[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.1a1...0.7.1a3)
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.1a2...0.7.1a3)
+
+## [0.7.1a2](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.7.1a2) (2026-07-17)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.7.1a1...0.7.1a2)
 
 **Merged pull requests:**
 
