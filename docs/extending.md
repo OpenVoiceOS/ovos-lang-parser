@@ -1,7 +1,7 @@
 # Adding a language
 
 Teaching the parser to read language names written in a new language means adding one
-wordlist. No code changes are required — `LANGS` is discovered from the filesystem at import
+wordlist. No code changes are required. `LANGS` is discovered from the filesystem at import
 time.
 
 ## Steps
@@ -27,9 +27,9 @@ time.
    }
    ```
 
-   - The **first** name for a code is canonical — it is what `pronounce_lang` returns. List
+   - The **first** name for a code is canonical. It is what `pronounce_lang` returns. List
      the most natural spelling first.
-   - Provide both base and regional tags where they differ (`pt` and `pt-br`); a regional tag
+   - Provide both base and regional tags where they differ (`pt` and `pt-br`). A regional tag
      with no entry falls back to the base name automatically.
 
 3. **Add spelling variants with templates** when several forms should all resolve to one
@@ -42,7 +42,7 @@ time.
    Both "nygrekiska" and "grekiska" become accepted names for `el`. Alternations can appear
    anywhere in the string and nest.
 
-That is the whole contribution — drop the file in, and the new code appears in `LANGS`
+That is the whole contribution. Drop the file in, and the new code appears in `LANGS`
 automatically.
 
 ## Verifying your wordlist
@@ -66,8 +66,11 @@ print(len(get_lang_data("<lang>")), "names loaded")
 ## Conventions
 
 - Codes are normalized to modern lowercase form on load, so you may use legacy aliases
-  (`iw`, `jw`, `mo`) — they merge onto the current code (`he`, `jv`, `ro`). Prefer the modern
+  (`iw`, `jw`, `mo`). They merge onto the current code (`he`, `jv`, `ro`). Prefer the modern
   code when authoring.
-- Keep the file UTF-8 and valid JSON; the loader reads it directly.
-- Names are matched case-insensitively at runtime, so casing in the file is only cosmetic —
-  but keep it natural for `pronounce_lang` output.
+- Keep the file UTF-8 and valid JSON. The loader reads it directly.
+- Names are matched case-insensitively at runtime, so casing in the file is only cosmetic.
+  Keep it natural for `pronounce_lang` output.
+
+---
+[← Coverage](coverage.md) · [Home](../README.md)

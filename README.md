@@ -1,7 +1,7 @@
 # ovos-lang-parser
 
-Map spoken and written **language names** to standard **IETF/BCP-47 language codes** — and
-back — in many languages, offline, with a two-function API.
+Map spoken and written **language names** to standard **IETF/BCP-47 language codes**, and
+back, in many languages, offline, with a two-function API.
 
 ```
 "Brazilian Portuguese"  ->  "pt-br"
@@ -14,7 +14,7 @@ The library understands language names written in **21 languages** (see
 [Coverage](#coverage)). A user can say "French" in English, "français" in French, or
 "Französisch" in German, and each resolves to the code `fr`. This is the piece you need
 whenever a human names a language in free text and your code needs a canonical code to act
-on — routing to a translation/TTS/STT engine, tagging an entity, or normalizing a messy
+on: routing to a translation/TTS/STT engine, tagging an entity, or normalizing a messy
 label.
 
 It ships as part of OpenVoiceOS, but has **no OVOS runtime dependency** and is useful in any
@@ -29,8 +29,8 @@ uv add ovos-lang-parser
 ```
 
 Runtime dependencies are small: [`langcodes`](https://github.com/rspeer/langcodes) for tag
-normalization and `ovos-utils` for the fuzzy matcher. No models, no network calls — the
-wordlists are bundled.
+normalization and `ovos-utils` for the fuzzy matcher. There are no models and no network
+calls: the wordlists are bundled.
 
 ## 30-second quickstart
 
@@ -47,13 +47,13 @@ print(pronounce_lang("de", "pt"))   # -> Alemão
 ```
 
 That is the whole surface for most callers: `extract_langcode` reads a name out of text and
-returns `(code, confidence)`; `pronounce_lang` turns a code back into a human name.
+returns `(code, confidence)`. `pronounce_lang` turns a code back into a human name.
 
 ## The API in one screen
 
 | Function | Purpose | Returns |
 |----------|---------|---------|
-| `extract_langcode(text, lang)` | Find the language named in `text` (written in `lang`) | `(langcode, confidence)` — confidence `0.0`–`1.0`; an exact name match is `1.0` |
+| `extract_langcode(text, lang)` | Find the language named in `text` (written in `lang`) | `(langcode, confidence)`. Confidence is `0.0` to `1.0`, and an exact name match is `1.0` |
 | `pronounce_lang(langcode, lang)` | Human name of `langcode`, rendered in `lang` | `str` (falls back to the base tag, then to `langcode` unchanged) |
 | `get_lang_data(lang)` | The full `{name: code}` table for `lang` | `dict[str, str]` |
 | `LANGS` | Codes of the languages a name can be written in | `list[str]` |
@@ -66,10 +66,10 @@ behavior.
 ## Use it outside OVOS
 
 The same two functions cover a range of standalone jobs. Each example below is a runnable
-script under [`examples/`](examples/) — `pip install ovos-lang-parser` and run it, no OVOS
-stack required.
+script under [`examples/`](examples/): run `pip install ovos-lang-parser`, then run the script.
+No OVOS stack is required.
 
-### Entity extraction / NER — pull a language out of free text
+### Entity extraction / NER: pull a language out of free text
 
 You have a sentence and want to know which language it mentions.
 
@@ -88,9 +88,9 @@ Because matching is fuzzy, apply a confidence threshold to decide whether a lang
 really mentioned. Full script:
 [`examples/ner_language_mentions.py`](examples/ner_language_mentions.py).
 
-### Routing — pick a translation / TTS / STT engine by name
+### Routing: pick a translation / TTS / STT engine by name
 
-A user names a target language; you resolve it to a code and hand that to whatever engine
+A user names a target language. You resolve it to a code and hand that to whatever engine
 your pipeline drives.
 
 ```python
@@ -105,7 +105,7 @@ print(resolve_target("read it back to me in German"))   # -> de  (feed to your T
 
 Full script (with a mock engine table): [`examples/routing.py`](examples/routing.py).
 
-### Normalization — canonicalize messy names and autonyms to one code
+### Normalization: canonicalize messy names and autonyms to one code
 
 Aliases, autonyms, and localized spellings all collapse to a single canonical code, so you
 can deduplicate and standardize labels regardless of how they were written.
@@ -123,13 +123,13 @@ Full script: [`examples/normalization.py`](examples/normalization.py).
 
 ### In an OVOS skill vs. standalone
 
-The API is identical; only where you get `text` and `lang` differs.
+The API is identical. Only where you get `text` and `lang` differs.
 
 ```python
 # Standalone language-routing utility
 code, conf = extract_langcode(user_input, "en")
 
-# Inside an OVOS skill — the utterance and its language come from the session
+# Inside an OVOS skill, the utterance and its language come from the session
 class MySkill(OVOSSkill):
     def handle_translate(self, message):
         utterance = message.data["utterance"]
@@ -139,7 +139,7 @@ class MySkill(OVOSSkill):
 
 ## Coverage
 
-Names can be written in **21 languages**; each carries a table of a few hundred target
+Names can be written in **21 languages**. Each carries a table of a few hundred target
 languages keyed by ISO 639 code.
 
 | | | | |
@@ -151,23 +151,22 @@ languages keyed by ISO 639 code.
 | `nl` Dutch | `oc` Occitan | `pt` Portuguese | `ro` Romanian |
 | `sk` Slovak | | | |
 
-The live list is always `ovos_lang_parser.LANGS`. Adding a language is a matter of dropping
-in one JSON file — see [docs/coverage.md](docs/coverage.md) and
-[docs/extending.md](docs/extending.md).
+The live list is always `ovos_lang_parser.LANGS`. Adding a language means dropping in one
+JSON file. See [docs/coverage.md](docs/coverage.md) and [docs/extending.md](docs/extending.md).
 
 ## Documentation
 
-- [docs/api.md](docs/api.md) — full reference, confidence model, edge behavior
-- [docs/coverage.md](docs/coverage.md) — supported languages and the data model
-- [docs/extending.md](docs/extending.md) — add a language wordlist
-- [examples/](examples/) — runnable scripts for each use case
+- [docs/api.md](docs/api.md): full reference, confidence model, edge behavior
+- [docs/coverage.md](docs/coverage.md): supported languages and the data model
+- [docs/extending.md](docs/extending.md): add a language wordlist
+- [examples/](examples/): runnable scripts for each use case
 
 ## Related projects
 
-- [ovos-number-parser](https://github.com/OpenVoiceOS/ovos-number-parser) — numbers
-- [ovos-date-parser](https://github.com/OpenVoiceOS/ovos-date-parser) — dates and times
-- [ovos-color-parser](https://github.com/OVOSHatchery/ovos-color-parser) — colors
+- [ovos-number-parser](https://github.com/OpenVoiceOS/ovos-number-parser): numbers
+- [ovos-date-parser](https://github.com/OpenVoiceOS/ovos-date-parser): dates and times
+- [ovos-color-parser](https://github.com/OVOSHatchery/ovos-color-parser): colors
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE).
+Apache 2.0. See [LICENSE](LICENSE).
