@@ -1,7 +1,7 @@
 import unittest
 
-from ovos_lang_parser import (LANGS, extract_langcode, get_lang_data,
-                              pronounce_lang)
+from ovos_lang_parser import (LANGS, extract_langcode, extract_language,
+                              get_lang_data, pronounce_lang)
 
 # hand-verified (utterance language, spoken name, expected code) triples
 EXTRACTION_SAMPLES = [
@@ -280,6 +280,71 @@ class TestExtractLangcode(unittest.TestCase):
         # a strong curated match keeps its curated code, not a CLDR reading
         self.assertEqual(extract_langcode("Portuguese", "en"), ("pt", 1.0))
         self.assertEqual(extract_langcode("English", "en"), ("en", 1.0))
+
+
+class TestExtractLanguage(unittest.TestCase):
+    """OVOS-INTENT-1 §5.6 ``language`` typed-slot entries."""
+
+    def test_span_and_surface_invariant(self):
+        text = "speak in German please"
+        entries = extract_language(text, "en")
+        self.assertEqual(len(entries), 1)
+        entry = entries[0]
+        start, end = entry["span"]
+        self.assertEqual(text[start:end], entry["surface"])
+        self.assertEqual(entry["surface"], "German")
+        self.assertEqual(entry["value"], {"code": "de", "name": "Deutsch"})
+
+    def test_spec_examples(self):
+        # the §5.6 examples verbatim
+        entries = extract_language("speak in German", "en")
+        self.assertEqual(entries, [{
+            "span": [9, 15], "surface": "German",
+            "value": {"code": "de", "name": "Deutsch"},
+        }])
+        entries = extract_language("fala em japonês", "pt")
+        self.assertEqual(entries, [{
+            "span": [8, 15], "surface": "japonês",
+            "value": {"code": "ja", "name": "日本語"},
+        }])
+        entries = extract_language("speak Brazilian Portuguese", "en")
+        self.assertEqual(entries, [{
+            "span": [6, 26], "surface": "Brazilian Portuguese",
+            "value": {"code": "pt-br", "name": "Português"},
+        }])
+
+    def test_longest_name_wins_no_overlap(self):
+        entries = extract_language("please use American English here", "en")
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0]["surface"], "American English")
+        self.assertEqual(entries[0]["value"]["code"], "en-us")
+
+    def test_regioned_code_names_primary_subtag_only(self):
+        # §5.6: name is the autonym of the primary language subtag, never a
+        # regional variant, even when the code itself carries the region
+        entries = extract_language("speak Brazilian Portuguese", "en")
+        self.assertEqual(entries[0]["value"]["name"], "Português")
+
+    def test_no_match_returns_empty_list(self):
+        self.assertEqual(extract_language("hello there friend", "en"), [])
+        self.assertEqual(extract_language("communication skills", "en"), [])
+
+    def test_empty_and_non_string_text(self):
+        for bad in ["", "   ", None, 123, [], {}]:
+            self.assertEqual(extract_language(bad, "en"), [])
+
+    def test_unsupported_language_raises(self):
+        with self.assertRaises(ValueError):
+            extract_language("English", "zz")
+
+    def test_multiple_non_overlapping_entries(self):
+        text = "English or German either is fine"
+        entries = extract_language(text, "en")
+        codes = sorted(e["value"]["code"] for e in entries)
+        self.assertEqual(codes, ["de", "en"])
+        for e in entries:
+            start, end = e["span"]
+            self.assertEqual(text[start:end], e["surface"])
 
 
 class TestPronounceLang(unittest.TestCase):

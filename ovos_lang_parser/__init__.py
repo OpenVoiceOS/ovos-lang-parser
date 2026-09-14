@@ -31,7 +31,7 @@ import json
 import os.path
 import re
 from functools import lru_cache
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import langcodes
 from ovos_spec_tools.language import closest_lang, lang_distance, standardize_lang
@@ -243,6 +243,82 @@ def extract_langcode(text: str, lang: str) -> Tuple[str, float]:
     if not conf:
         return "", 0.0
     return code, conf
+
+
+def _autonym(code: str) -> Optional[str]:
+    """The name of ``code`` in its own language, or ``None`` when unknown.
+
+    Tries the curated wordlist first (``pronounce_lang(code, code)``), then
+    falls back to the CLDR autonym for a code no wordlist bundles. Never
+    raises: an unresolvable code (unsupported wordlist, unknown to CLDR)
+    yields ``None`` rather than the bare code, so a caller never mistakes the
+    code itself for a name.
+    """
+    try:
+        name = pronounce_lang(code, code)
+        if name and name != code:
+            return name
+    except ValueError:
+        pass
+    try:
+        autonym = langcodes.Language.get(code).autonym()
+    except Exception:
+        return None
+    if autonym and not autonym.lower().startswith("unknown language"):
+        return autonym
+    return None
+
+
+def extract_language(text: str, lang: str) -> List[Dict]:
+    """Extract OVOS-INTENT-1 §5.6 ``language`` typed-slot entries from ``text``.
+
+    ``lang`` is the language the utterance is spoken in. Returns a list of
+    entries, each ``{"span": [start, end], "surface": <text>, "value":
+    {"code": <BCP-47 tag>, "name": <autonym or None>}}``; ``span`` is a
+    half-open Unicode-code-point range into ``text`` and ``surface`` is
+    ``text[start:end]`` (the invariant §5.6 requires). ``name`` is the
+    autonym of the primary language subtag only, per §5.6: for "Brazilian
+    Portuguese" (-> ``pt-br``) ``name`` is ``"Português"``, not a Brazilian
+    variant. A non-string or blank ``text``, or unmatched text, yields ``[]``.
+
+    Only names that occur verbatim as a run of whole words are recognized
+    (the same exact-match rule :func:`extract_langcode` applies before its
+    fuzzy fallback); a fuzzy-only reading has no reliable span and is not
+    reported here. The longest name wins at a given position ("American
+    English" over "English"), and matches do not overlap.
+    """
+    if not isinstance(text, str) or not text.strip():
+        return []
+    langs = get_lang_data(lang)
+    tokens = [(m.group(0), m.start(), m.end()) for m in re.finditer(r"\S+", text)]
+    tokens_cf = [t[0].casefold() for t in tokens]
+    # longest name first, so "American English" claims its span before "English" can
+    names_by_len = sorted(langs.items(), key=lambda kv: -len(kv[0].split()))
+    claimed: List[Tuple[int, int]] = []
+    entries = []
+    for name, code in names_by_len:
+        name_tokens = name.casefold().split()
+        span = len(name_tokens)
+        if not span:
+            continue
+        i = 0
+        while i <= len(tokens_cf) - span:
+            if tokens_cf[i:i + span] == name_tokens and not any(
+                    i < end and start < i + span for start, end in claimed):
+                char_start = tokens[i][1]
+                char_end = tokens[i + span - 1][2]
+                base = code.split("-")[0]
+                entries.append({
+                    "span": [char_start, char_end],
+                    "surface": text[char_start:char_end],
+                    "value": {"code": code, "name": _autonym(base)},
+                })
+                claimed.append((i, i + span))
+                i += span
+                continue
+            i += 1
+    entries.sort(key=lambda e: e["span"][0])
+    return entries
 
 
 def pronounce_lang(lang_code: str, lang: str) -> str:
