@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0a3](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.8.0a3) (2026-11-03)
+
+[Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.8.0a2...0.8.0a3)
+
+**Merged pull requests:**
+
+- test: accept the default region of bare en from ovos-spec-tools [\#54](https://github.com/OpenVoiceOS/ovos-lang-parser/pull/54) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.8.0a2](https://github.com/OpenVoiceOS/ovos-lang-parser/tree/0.8.0a2) (2026-09-26)
 
 [Full Changelog](https://github.com/OpenVoiceOS/ovos-lang-parser/compare/0.8.0a1...0.8.0a2)
