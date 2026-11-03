@@ -442,7 +442,9 @@ class TestRegionAndPrivateUseTags(unittest.TestCase):
     def test_spec_matcher_closest_and_distance(self):
         from ovos_spec_tools.language import closest_lang, lang_distance
         # exact and regional matches rank correctly via the spec matcher
-        self.assertEqual(lang_distance("en-us", "en"), 0)
+        self.assertEqual(lang_distance("en-us", "en-us"), 0)
+        self.assertLessEqual(lang_distance("en-us", "en"), 5)
+        self.assertEqual(closest_lang("en-us", ["en", "pt", "de"]), "en")
         self.assertGreater(lang_distance("pt-br", "pt"), 0)
         self.assertGreater(lang_distance("ja", "pt"), 10)
         self.assertEqual(closest_lang("pt-br", ["en", "pt", "de"]), "pt")
